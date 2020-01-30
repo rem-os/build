@@ -1,9 +1,9 @@
-# TrueOS Build
+# RemOS Build
 
-TrueOS Build repo is a JSON manifest-based build system for TrueOS. It uses poudriere, base packages, 'jq' and others in order to create a full package build, as well as ISO and update images.
+TrueOS Build repo is a JSON manifest-based build system for RemOS. It uses poudriere, base packages, 'jq' and others in order to create a full package build, as well as ISO and update images.
 
 # Requirements
- - Installed RemOS/freebsd image
+ - Installed RemOS/freebsd/Trueos image
  - Installed ports-mgmt/poudriere-pkgbase package
  - Installed textproc/jq package
  - Configured /usr/local/etc/poudriere.conf (I.E. to setup ZPOOL)
