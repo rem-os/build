@@ -256,6 +256,18 @@ setup_poudriere_conf()
 	# Save kernel/world flags as well
 	get_world_flags | sed 's|^ ||g' | tr -s ' ' '\n' >> ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
 	get_kernel_flags | sed 's|^ ||g' | tr -s ' ' '\n' >> ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
+
+	# Setup meta for package type
+	if  cat remos-master.json|jq .ports.'"pkg_sufx"'  >/dev/null 2>/dev/null  ; then
+		pkg_sufx=$(cat remos-master.json|jq .ports.'"pkg_sufx"')
+		trimmed_pkg_sufx=$(echo  ${pkg_sufx}|tr -d '.')
+		echo "PKG_SUFX=${pkg_sufx}" > ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
+		echo "PKG_REPO_META_FILE=/usr/local/etc/poudriere.d/meta" >> ${_pdconf}
+		echo "version = 1" > /usr/local/etc/poudriere.d/meta
+		echo "packing_format = \"${pkg_sufx}\";" >> /usr/local/etc/poudriere.d/meta
+	fi
+
+
 }
 
 # We don't need to store poudriere data in our checked out location

@@ -280,6 +280,7 @@
       ]
     },
     "build-all": true,
+    "pkg-sufx": "tzst",
     "make.conf": {
       "default": [
         "DEFAULT_VERSIONS+=mysql=102m",
@@ -307,6 +308,7 @@
   "poudriere-conf": [
     "NOHANG_TIME=14400",
     "MAX_FILES_vscode=4096",
+    "PKG_REPO_META_FILE=/usr/local/etc/poudriere.d/meta",
     "USE_TMPFS='all'"
   ],
   "version": "1.1"
