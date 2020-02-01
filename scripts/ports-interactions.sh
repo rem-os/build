@@ -10,8 +10,8 @@
 
 # Primary Functions
 #---------------------------------------------------
-# apply_ports_overlay(ports_tree_path) + TRUEOS_MANIFEST
-# checkout_gh_ports(ports_tree_path) + TRUEOS_MANIFEST
+# apply_ports_overlay(ports_tree_path) + BUILD_MANIFEST
+# checkout_gh_ports(ports_tree_path) + BUILD_MANIFEST
 
 # Stand-alone functions used internally
 # ---------------------------------------------------
@@ -146,11 +146,11 @@ add_port_to_ports(){
 apply_ports_overlay(){
   #Inputs:
   # $1 : ports tree path
-  # TRUEOS_MANIFEST variable must be set!
+  # BUILD_MANIFEST variable must be set!
 
   local _ports="$1"
 
-  num=`jq -r '."ports"."overlay" | length' "${TRUEOS_MANIFEST}"`
+  num=`jq -r '."ports"."overlay" | length' "${BUILD_MANIFEST}"`
   if [ "${num}" = "null" ] || [ -z "${num}" ] ; then
     #nothing to do
     return 0
@@ -159,12 +159,12 @@ apply_ports_overlay(){
   local _reg_cats=""
   while [ ${i} -lt ${num} ]
   do
-    _type=`jq -r '."ports"."overlay"['${i}'].type' "${TRUEOS_MANIFEST}"`
-    _name=`jq -r '."ports"."overlay"['${i}'].name' "${TRUEOS_MANIFEST}"`
-    _path=`jq -r '."ports"."overlay"['${i}'].local_path' "${TRUEOS_MANIFEST}"`
+    _type=`jq -r '."ports"."overlay"['${i}'].type' "${BUILD_MANIFEST}"`
+    _name=`jq -r '."ports"."overlay"['${i}'].name' "${BUILD_MANIFEST}"`
+    _path=`jq -r '."ports"."overlay"['${i}'].local_path' "${BUILD_MANIFEST}"`
     if [ ! -e "${_path}" ] ; then
       # See if this is a relative path from the manifest location instead
-      local CURDIR=$(dirname "${TRUEOS_MANIFEST}")
+      local CURDIR=$(dirname "${BUILD_MANIFEST}")
       _path="${CURDIR}/${_path}" #try to make it an absolute path
     fi
     if [ -e "${_path}" ] ; then 
@@ -222,9 +222,9 @@ checkout_gh_ports(){
   # $1 :  Path to directory where the source tree should be placed
 
   local SRCDIR="${1}"
-  local GH_BASE_ORG=`jq -r '."ports"."github-org"' "${TRUEOS_MANIFEST}"`
-  local GH_BASE_REPO=`jq -r '."ports"."github-repo"' "${TRUEOS_MANIFEST}"`
-  local GH_BASE_TAG=`jq -r '."ports"."github-tag"' "${TRUEOS_MANIFEST}"`
+  local GH_BASE_ORG=`jq -r '."ports"."github-org"' "${BUILD_MANIFEST}"`
+  local GH_BASE_REPO=`jq -r '."ports"."github-repo"' "${BUILD_MANIFEST}"`
+  local GH_BASE_TAG=`jq -r '."ports"."github-tag"' "${BUILD_MANIFEST}"`
   if [ -z "${GH_BASE_ORG}" ] || [ "null" = "${GH_BASE_ORG}" ] ; then
     return 1
   fi
@@ -236,7 +236,7 @@ checkout_gh_ports(){
     # Get the latest commit on this branch and use that as the commit tag (prevents constantly downloading a branch to check checksums)  
     GH_BASE_TAG=`git ls-remote "https://github.com/${GH_BASE_ORG}/${GH_BASE_REPO}" "${GH_BASE_TAG}" | cut -w -f 1`
   fi
-  local BASE_CACHE_DIR="/tmp/$(basename -s .json ${TRUEOS_MANIFEST})"
+  local BASE_CACHE_DIR="/tmp/$(basename -s .json ${BUILD_MANIFEST})"
   local BASE_TAR="${BASE_CACHE_DIR}/${GH_BASE_ORG}_${GH_BASE_REPO}_${GH_BASE_TAG}.tgz"
   local _skip=1
   if [ -d "${BASE_CACHE_DIR}" ] ; then

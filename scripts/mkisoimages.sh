@@ -28,13 +28,13 @@ export PATH
 
 parse_overlay()
 {
-	OVERLAY="$(jq -r '."iso"."overlay"' $TRUEOS_MANIFEST)"
+	OVERLAY="$(jq -r '."iso"."overlay"' $BUILD_MANIFEST)"
 	if [ "$OVERLAY" = "null" ] ; then
 		return
 	fi
-	OVERLAY_TYPE="$(jq -r '."iso"."overlay"."type"' $TRUEOS_MANIFEST)"
-	OVERLAY_URL="$(jq -r '."iso"."overlay"."url"' $TRUEOS_MANIFEST)"
-	OVERLAY_BRANCH="$(jq -r '."iso"."overlay"."branch"' $TRUEOS_MANIFEST)"
+	OVERLAY_TYPE="$(jq -r '."iso"."overlay"."type"' $BUILD_MANIFEST)"
+	OVERLAY_URL="$(jq -r '."iso"."overlay"."url"' $BUILD_MANIFEST)"
+	OVERLAY_BRANCH="$(jq -r '."iso"."overlay"."branch"' $BUILD_MANIFEST)"
 	export OVERLAY_DIR="tmp/iso-overlay"
 
 	if [ -d "${OVERLAY_DIR}" ] ; then
@@ -99,17 +99,17 @@ if [ $# -lt 3 ]; then
 	exit 1
 fi
 
-# If there is a TRUEOS_MANIFEST specified, lets include its install-overlay
-if [ -n "$TRUEOS_MANIFEST" ] ; then
+# If there is a BUILD_MANIFEST specified, lets include its install-overlay
+if [ -n "$BUILD_MANIFEST" ] ; then
 	parse_overlay
 else
-	echo "WARNING: TRUEOS_MANIFEST not set"
+	echo "WARNING: BUILD_MANIFEST not set"
 fi
 
 LABEL=`echo "$1" | tr '[:lower:]' '[:upper:]'`; shift
 NAME="$1"; shift
 
-publisher="TrueOS -  https://www.TrueOS.org/"
+publisher="RemOS -  https://www.RemOS.dev/"
 echo "/dev/iso9660/$LABEL / cd9660 ro 0 0" > "$BASEBITSDIR/etc/fstab"
 sync
 tar cf - -C$OVERLAY_DIR . | tar xf - -C$BASEBITSDIR

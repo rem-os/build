@@ -1,7 +1,7 @@
 # The Manifest File:
 --------------
 
-TrueOS includes several manifest files in this directory which may be referenced for examples of usable build manifests.
+RemOS includes several manifest files in this directory which may be referenced for examples of usable build manifests.
 which can be customized with the following JSON settings:
 
 ### version

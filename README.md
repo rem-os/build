@@ -1,6 +1,6 @@
 # RemOS Build
 
-TrueOS Build repo is a JSON manifest-based build system for RemOS. It uses poudriere, base packages, 'jq' and others in order to create a full package build, as well as ISO and update images.
+RemOS Build repo is a JSON manifest-based build system for RemOS. It uses poudriere, base packages, 'jq' and others in order to create a full package build, as well as ISO and update images.
 
 # Requirements
  - Installed RemOS/freebsd/Trueos image
@@ -9,16 +9,16 @@ TrueOS Build repo is a JSON manifest-based build system for RemOS. It uses poudr
  - Configured /usr/local/etc/poudriere.conf (I.E. to setup ZPOOL)
 
 # Build Manifest
-TrueOS uses a single JSON configuration file as a "build manifest" containing all the instructions and/or specifications for building the distribution. For details about the build manifests, please refer to the [manifests directory](https://github.com/trueos/build/tree/master/manifests) for information about creating a build manifest as well as example manifest files.
+RemOS uses a single JSON configuration file as a "build manifest" containing all the instructions and/or specifications for building the distribution. For details about the build manifests, please refer to the [manifests directory](https://github.com/rem-os/build/tree/master/manifests) for information about creating a build manifest as well as example manifest files.
 
 A build manifest can be supplied for the build in a couple of different ways:
-1. Set the "TRUEOS_MANIFEST" environment variable to the absolute path to the desired build manifest file.
-2. Run `make config` to select from one of the available build manifests in the [manifests directory](https://github.com/trueos/build/tree/master/manifests).
-3. Do nothing and automatically use the default build manifest (trueos-snapshot-builder). 
-   * NOTE: The trueos-snapshot-builder manifest only builds a tiny subset of packages and is primarily used for testing the build procedures and base OS packages only.
+1. Set the "MANIFEST" environment variable to the absolute path to the desired build manifest file.
+2. Run `make config` to select from one of the available build manifests in the [manifests directory](https://github.com/remos/build/tree/master/manifests).
+3. Do nothing and automatically use the default build manifest (remos-snapshot). 
+   * NOTE: The remos-snapshot-builder manifest only builds a tiny subset of packages and is primarily used for testing the build procedures and base OS packages only.
 
 # Usage
-Standard commands to build a TrueOS distribution:
+Standard commands to build a RemOS distribution:
 ```
 # make ports
 # make iso
@@ -36,8 +36,8 @@ This command will clean up:
 * VM output directory : Deleting the output of any "make image" commands run previously.
 
 ### make config
-This will launch an interactive prompt to select a build manifest from the example files in the [manifests directory](https://github.com/trueos/build/tree/master/manifests) and use that as the default build manifest.
-The selected Manifest name will get saved to the local ".config/manifest" file and used whenever the **TRUEOS_MANIFEST** environment variable is not set. This command may be run whenever a different default manifest is desired.
+This will launch an interactive prompt to select a build manifest from the example files in the [manifests directory](https://github.com/rem-os/build/tree/master/manifests) and use that as the default build manifest.
+The selected Manifest name will get saved to the local ".config/manifest" file and used whenever the **MANIFEST** environment variable is not set. This command may be run whenever a different default manifest is desired.
 
 ### make ports
 |Output Files|Output Ports Logs| Output Source Logs | Output Manifests |

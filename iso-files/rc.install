@@ -9,9 +9,9 @@
 : ${DIALOG_ESC=255}
 
 MACHINE=`uname -m`
-BRAND="TrueOS"
-if [ -e "/var/db/trueos-manifest.json" ] ; then
-  _tmp=`jq -r '."os_name"' "/var/db/trueos-manifest.json" 2>/dev/null`
+BRAND="RemOS"
+if [ -e "/var/db/remos-manifest.json" ] ; then
+  _tmp=`jq -r '."os_name"' "/var/db/remos-manifest.json" 2>/dev/null`
   if [ -n "${_tmp}" -a "${_tmp}" != "null" ] ; then
     BRAND="${_tmp}"
   fi
@@ -67,9 +67,9 @@ dd if=/dev/random of=/dev/null bs=1k count=1 >/dev/null 2>/dev/null
 sleep 1
 clear
 
-if [ -f /etc/trueos-custom-install ]; then
+if [ -f /etc/custom-install ]; then
 	# A custom install script exists, lets run that instead of the default
-	$(cat /etc/trueos-custom-install)
+	$(cat /etc/custom-install)
 #	if [ $? -eq 0 ]; then
 #		dialog --backtitle "Installation Media" --title "Complete" --yes-label "Reboot" --no-label "Live CD" --yesno "Installation complete! Would you like to reboot into the installed system now?" 0 0 && reboot
 #	else
@@ -78,11 +78,11 @@ if [ -f /etc/trueos-custom-install ]; then
 	exit $?
 fi
 
-if glabel status | grep -q "msdosfs/TRUEOSCONF"; then
-	mkdir /tmp/TRUEOSCONF
-        mount_msdosfs /dev/msdosfs/TRUEOSCONF /tmp/TRUEOSCONF
+if glabel status | grep -q "msdosfs/PCSYSINSTALLCONF"; then
+	mkdir /tmp/PCSYSINSTALLCONF
+        mount_msdosfs /dev/msdosfs/PCSYSINSTALLCONF /tmp/PCSYSINSTALLCONF
 	# Check if we have an auto-install directive
-	if pc-sysinstall start-autoinstall /tmp/TRUEOSCONF/installerconfig; then
+	if pc-sysinstall start-autoinstall /tmp/PCSYSINSTALLCONF/installerconfig; then
 		dialog --backtitle "${BRAND} Installer" --title "Complete" --no-cancel --ok-label "Reboot" --pause "Installation of ${BRAND} complete! Rebooting in 10 seconds" 10 30 10
 		reboot
 	else
