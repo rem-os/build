@@ -258,8 +258,8 @@ setup_poudriere_conf()
 	get_kernel_flags | sed 's|^ ||g' | tr -s ' ' '\n' >> ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
 
 	# Setup meta for package type
-	if  cat remos-master.json|jq .ports.'"pkg_sufx"'  >/dev/null 2>/dev/null  ; then
-		pkg_sufx=$(cat remos-master.json|jq .ports.'"pkg_sufx"')
+	if  |jq .ports.'"pkg_sufx"' ${BUILD_MANIFEST} >/dev/null 2>/dev/null; then
+		pkg_sufx=$(jq .ports.'"pkg_sufx"' ${BUILD_MANIFEST})
 		trimmed_pkg_sufx=$(echo  ${pkg_sufx}|tr -d '.')
 		echo "PKG_SUFX=${pkg_sufx}" > ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
 		echo "PKG_REPO_META_FILE=/usr/local/etc/poudriere.d/meta" >> ${_pdconf}
