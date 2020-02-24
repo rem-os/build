@@ -26,7 +26,6 @@
 #
 # $FreeBSD$
 #
-
 export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 
 delete_tmp_manifest(){	
@@ -229,8 +228,8 @@ setup_poudriere_conf()
 	echo "ATOMIC_PACKAGE_REPOSITORY=no" >> ${_pdconf}
 	echo "DISTFILES_CACHE=${DISTFILES}" >> ${_pdconf}
 	#echo "PKG_REPO_FROM_HOST=yes" >> ${_pdconf}
-	echo "ALLOW_MAKE_JOBS_PACKAGES=\"chromium* iridium* aws-sdk* gcc* webkit* llvm* clang* firefox* ruby* cmake* rust* qt5-web* phantomjs* swift* perl5* py*\"" >> ${_pdconf}
-	echo "PRIORITY_BOOST=\"pypy* openoffice* iridium* chromium* aws-sdk* libreoffice*\"" >> ${_pdconf}
+	echo 'ALLOW_MAKE_JOBS_PACKAGES="chromium* iridium* aws-sdk* gcc* webkit* llvm* clang* firefox* ruby* cmake* rust* qt5-web* phantomjs* swift* perl5* py*  electron* vscode* InsightToolkit* mame* kodi-devel* ghc* ceph* "' >> ${_pdconf}
+	echo 'PRIORITY_BOOST="pypy* apache-openoffice* iridium* chromium* aws-sdk* electron* vscode* libreoffice* nwchem*"' >> ${_pdconf}
 
 	# Set all the make config variables from our build
 	if [ "$(jq -r '."poudriere-conf" | length' ${BUILD_MANIFEST})" != "0" ] ; then
@@ -258,10 +257,9 @@ setup_poudriere_conf()
 	get_kernel_flags | sed 's|^ ||g' | tr -s ' ' '\n' >> ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
 
 	# Setup meta for package type
-	if  |jq .ports.'"pkg_sufx"' ${BUILD_MANIFEST} >/dev/null 2>/dev/null; then
-		pkg_sufx=$(jq .ports.'"pkg_sufx"' ${BUILD_MANIFEST})
-		trimmed_pkg_sufx=$(echo  ${pkg_sufx}|tr -d '.')
-		echo "PKG_SUFX=${pkg_sufx}" > ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
+	if  jq .ports.'"pkg-sufx"' ${BUILD_MANIFEST} >/dev/null 2>/dev/null; then
+		pkg_sufx=$(jq .ports.'"pkg-sufx"' ${BUILD_MANIFEST} |tr -d '"')
+		echo "PKG_SUFX=.${pkg_sufx}" > ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
 		echo "PKG_REPO_META_FILE=/usr/local/etc/poudriere.d/meta" >> ${_pdconf}
 		echo "version = 1" > /usr/local/etc/poudriere.d/meta
 		echo "packing_format = \"${pkg_sufx}\";" >> /usr/local/etc/poudriere.d/meta
@@ -554,8 +552,8 @@ is_jail_dirty()
 
 	# Check if we need to build the jail - skip if existing pkg is updated
 	pkgName=$(make -C ${POUDRIERE_PORTDIR}/os/src -V PKGNAME PORTSDIR=${POUDRIERE_PORTDIR} __MAKE_CONF=${OBJDIR}/poudriere.d/${POUDRIERE_BASE}-make.conf)
-	echo "Looking for ${POUDRIERE_PKGDIR}/All/${pkgName}.txz"
-	if [ ! -e "${POUDRIERE_PKGDIR}/All/${pkgName}.txz" ] ; then
+	echo "Looking for ${POUDRIERE_PKGDIR}/All/${pkgName}.t*"
+	if [ ! -n  $(find ${POUDRIERE_PKGDIR}/All -maxdepth 1 -name ${pkgname}.'*' -print -quit) ] ; then
 		echo "Different os/src detected for ${POUDRIERE_BASE} jail"
 		return 1
 	fi
@@ -867,7 +865,8 @@ check_essential_pkgs()
 			ESSENTIAL="$ESSENTIAL $(jq -r '."iso"."'$ptype'"."'$c'" | join(" ")' ${BUILD_MANIFEST})"
 		done
 	done
-
+	#TODO remove skipping of essential
+        return 0 
 	# Cleanup whitespace
 	ESSENTIAL=$(echo $ESSENTIAL | awk '{$1=$1;print}')
 
@@ -894,8 +893,8 @@ check_essential_pkgs()
 			haveWarn=1
 		fi
 
-		if [ ! -e "${POUDRIERE_PKGDIR}/All/${pkgName}.txz" ] ; then
-			echo "Checked: ${POUDRIERE_PKGDIR}/All/${pkgName}.txz"
+		if [ ! -e "${POUDRIERE_PKGDIR}/All/${pkgName}.t*" ] ; then
+			echo "Checked: ${POUDRIERE_PKGDIR}/All/${pkgName}.t*"
 			echo "WARNING: Missing package ${pkgName} for port ${i}"
 			_missingpkglist="${_missingpkglist} ${pkgName}"
 			haveWarn=1
@@ -974,9 +973,11 @@ clean_iso_dir()
 	if [ ! -d "${ISODIR}" ] ; then
 		return 0
 	fi
-	rm -rf ${ISODIR} >/dev/null 2>/dev/null
+	rm -rxf ${ISODIR} >/dev/null 2>/dev/null
 	chflags -R noschg ${ISODIR} >/dev/null 2>/dev/null
-	rm -rf ${ISODIR}
+	rm -rxf ${ISODIR}
+	find -xd ${ISODIR} >/dev/null 2>/dev/null|xargs -I {}  umount -f '{}' >/dev/null 2>/dev/null 
+	rm -rxf ${ISODIR}
 }
 
 create_iso_dir()
@@ -986,9 +987,8 @@ create_iso_dir()
 	mk_repo_config
 
 	ABI=$(pkg-static -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh config ABI)
-	PKG_DISTDIR="${ISODIR}/dist/${ABI}/latest"
+	PKG_DISTDIR="dist/${ABI}/latest"
 	mkdir -p "${PKG_DISTDIR}"
-
 	mkdir -p ${ISODIR}/tmp
 	mkdir -p ${ISODIR}/var/db/pkg
 	cp -r tmp/repo-config ${ISODIR}/tmp/repo-config
@@ -1010,6 +1010,7 @@ create_iso_dir()
 
 	if [ -z "$BASE_PACKAGES" ] ; then
 		# No custom base packages specified, lets roll with the defaults
+#		BASE_PACKAGES="os-generic-userland os-generic-kernel ports-mgmt/pkg"
 		BASE_PACKAGES="os/userland os/kernel ports-mgmt/pkg"
 	else
 		# We always need pkg itself
@@ -1027,11 +1028,10 @@ create_iso_dir()
 		fi
 
 	done
-
 	# Copy over the base system packages into the distdir
 	for pkg in ${BASE_PACKAGES}
 	do
-		pkg-static -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh \
+		pkg-static -r ${ISODIR} -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh \
 			-R tmp/repo-config \
 			fetch -y -d -o ${PKG_DISTDIR} ${pkg}
 		if [ $? -ne 0 ] ; then
@@ -1062,7 +1062,7 @@ create_iso_dir()
 					done
 				elif [ "${ptype}" = "dist-packages-glob" ] ; then
 					echo "Fetching image dist-files for: $i"
-					pkg-static -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh \
+					pkg-static -r ${ISODIR} -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh \
 						-R tmp/repo-config \
 						fetch -y -d -o ${PKG_DISTDIR} -g $i
 					if [ $? -ne 0 ] ; then
@@ -1070,7 +1070,7 @@ create_iso_dir()
 					fi
 				else
 					echo "Fetching image dist-files for: $i"
-					pkg-static -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh \
+					pkg-static -r ${ISODIR} -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh \
 						-R tmp/repo-config \
 						fetch -y -d -o ${PKG_DISTDIR} $i
 					if [ $? -ne 0 ] ; then
@@ -1096,12 +1096,20 @@ create_iso_dir()
 
 	# Cleanup and move the updated pkgdb
 	unset PKG_DBDIR
-	mv ${IMGDIR}/tmp/pkgdb/* ${IMGDIR}/var/db/pkg/
-	rmdir ${IMGDIR}/tmp/pkgdb
-
+	mv ${ISODIR}/tmp/pkgdb/* ${ISODIR}/var/db/pkg/
+	rmdir ${ISODIR}/tmp/pkgdb
+	set -x 
 	# Create the repo DB
 	echo "Creating installer pkg repo"
-	pkg-static repo ${PKG_DISTDIR} ${SIGNING_KEY}
+	if  jq .ports.'"pkg-sufx"' ${BUILD_MANIFEST} >/dev/null 2>/dev/null; then
+		meta=dist/${abi}/meta.conf
+		pkg_sufx=$(jq .ports.'"pkg-sufx"' ${BUILD_MANIFEST} |tr -d '"')
+		echo "version = 1" > ${ISODIR}/${meta}
+		echo "packing_format = \"${pkg_sufx}\";" >> ${ISODIR}/${meta}
+		pkg-static -c ${ISODIR} repo -m ${meta} ${PKG_DISTDIR} ${SIGNING_KEY}
+	else
+		pkg-static -c ${ISODIR} repo ${PKG_DISTDIR} ${SIGNING_KEY}
+	fi
 }
 
 create_offline_update()
@@ -1152,6 +1160,7 @@ setup_iso_post() {
 	fi
 
 	# Create the install repo DB config
+	rm -r  ${ISODIR}/etc/pkg
 	mkdir -p ${ISODIR}/etc/pkg
 	cat >${ISODIR}/etc/pkg/RemOS.conf <<EOF
 install-repo: {
@@ -1162,7 +1171,7 @@ install-repo: {
 EOF
 	mkdir -p ${ISODIR}/install-pkg
 	mkdir -p ${ISODIR}/usr/home
-	mount_nullfs ${POUDRIERE_PKGDIR} ${ISODIR}/install-pkg
+	mount_nullfs -o ro ${POUDRIERE_PKGDIR} ${ISODIR}/install-pkg
 	if [ $? -ne 0 ] ; then
 		exit_err "Failed mounting nullfs to ${ISODIR}/install-pkg"
 	fi
@@ -1179,28 +1188,8 @@ EOF
 	cp ${BUILD_MANIFEST} ${ISODIR}/root/remos-manifest.json
 	cp ${BUILD_MANIFEST} ${ISODIR}/var/db/remos-manifest.json
 
-	# If we are using OpenRC, prep the ISO image
-	if [ -e "${ISODIR}/sbin/openrc" ] ; then
-		echo "Using OpenRC boot method for ISO"
-		cp iso-files/openrc ${ISODIR}/etc/rc
-		cp iso-files/rc.install ${ISODIR}/etc/
-
-		# Cleanup default runlevels
-		rm ${ISODIR}/etc/runlevels/boot/*
-		rm ${ISODIR}/etc/runlevels/default/*
-		for i in abi ldconfig localmount
-		do
-			ln -fs /etc/init.d/${i} ${ISODIR}/etc/runlevels/boot/${i}
-		done
-		for i in local
-		do
-			ln -fs /etc/init.d/${i} ${ISODIR}/etc/runlevels/default/${i}
-		done
-	else
-		echo "Using rc.d boot method for ISO"
-		cp iso-files/rc.install ${ISODIR}/etc/rc.local
-	fi
-
+        cp iso-files/rc.install ${ISODIR}/etc/rc.local
+        echo checking conditional packages
 	# Check for conditionals packages to install
 	for c in $(jq -r '."iso"."iso-packages" | keys[]' ${BUILD_MANIFEST} 2>/dev/null | tr -s '\n' ' ')
 	do
@@ -1218,7 +1207,6 @@ EOF
 				fi
 		done
 	done
-
 	# Cleanup the ISO install packages
 	umount -f ${ISODIR}/dev
 	umount -f ${ISODIR}/install-pkg
@@ -1428,6 +1416,7 @@ select_manifest()
 	fi
 	if [ ! -d ".config" ] ; then
 		mkdir .config
+	export PKG_DBDIR="tmp/pkgdb"
 	fi
 	echo "$MANIFEST" > .config/manifest
 	echo "New Default Manifest: ${MANIFEST}"
@@ -1821,6 +1810,7 @@ do_pkgs_push() {
 		endpoint="$(echo $url | cut -d '/' -f 1-3)"
 		bucket="$(echo $url | cut -d '/' -f 4-)"
 		transfers="$(jq -r '."pkg-repo".rclone_transfers' ${BUILD_MANIFEST})"
+		rclone_options="${rclone_options} -L"
 		if [ -n "${endpoint}" ] ; then
 			rclone_options="${rclone_options} --${rclone_type}-endpoint ${endpoint}"
 		fi

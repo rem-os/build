@@ -23,7 +23,7 @@
         "sysutils/ipmitool",
         "textproc/jq",
         "security/sudo",
-        "sysutils/sysup",
+        "remos/sysup",
         "sysutils/tmux"
       ]
     },
@@ -44,8 +44,8 @@
     "install-script": "",
     "iso-packages": {
       "default": [
-        "sysutils/pc-installdialog",
-        "sysutils/pc-sysinstall",
+        "remos/pc-installdialog",
+        "remos/pc-sysinstall",
         "textproc/jq"
       ]
     },
@@ -89,8 +89,9 @@
     }
   },
   "pkg-repo": { 
-    "url": "http://labstor02.lab.ixsystems.com:9000/ixlab/pkg/remos-master/latest",
+    "url":"https://raw.githubusercontent.com/rem-os/build/master/repos/remos-master", 
     "signature_type": "none",
+    "type": "url",
     "rclone_type": "s3",
     "rclone_provider": "minio",
     "rclone_transfers": "128",
@@ -237,7 +238,7 @@
         "sysutils/rsyncbackup",
         "sysutils/smartmontools",
         "sysutils/syslog-ng",
-        "sysutils/sysup",
+        "remos/sysup",
         "sysutils/tmux",
         "sysutils/turbostat",
         "sysutils/uefi-edk2-bhyve",
