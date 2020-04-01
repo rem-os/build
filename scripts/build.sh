@@ -986,6 +986,7 @@ create_iso_dir()
 
 	mk_repo_config
 
+	echo "pkg-static -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh config ABI"
 	ABI=$(pkg-static -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh config ABI)
 	PKG_DISTDIR="dist/${ABI}/latest"
 	mkdir -p "${PKG_DISTDIR}"
@@ -1020,6 +1021,8 @@ create_iso_dir()
 	# Install the base packages into iso dir
 	for pkg in ${BASE_PACKAGES}
 	do
+		echo "installing first package"
+		echo "pkg-static -r ${ISODIR} -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh  -R tmp/repo-config  install -y ${pkg} " 
 		pkg-static -r ${ISODIR} -o ABI_FILE=${POUDRIERE_JAILDIR}/bin/sh \
 			-R tmp/repo-config \
 			install -y ${pkg}
@@ -1098,7 +1101,6 @@ create_iso_dir()
 	unset PKG_DBDIR
 	mv ${ISODIR}/tmp/pkgdb/* ${ISODIR}/var/db/pkg/
 	rmdir ${ISODIR}/tmp/pkgdb
-	set -x 
 	# Create the repo DB
 	echo "Creating installer pkg repo"
 	if  jq .ports.'"pkg-sufx"' ${BUILD_MANIFEST} >/dev/null 2>/dev/null; then
@@ -1777,7 +1779,10 @@ do_pkgs_pull() {
 	fi
 	if [ "$(jq -r '."pkg-repo".rclone_type' ${BUILD_MANIFEST})" = "s3" ] ; then
 		rclone_type="s3"
-		url="$(jq -r '."pkg-repo".url' ${BUILD_MANIFEST})"
+		url="$(jq -r '."pkg-repo".rclone_url' ${BUILD_MANIFEST})"
+		if [ "q${url}" == "q" ] ; then
+			url="$(jq -r '."pkg-repo".url' ${BUILD_MANIFEST})"
+		fi
 		provider="$(jq -r '."pkg-repo".rclone_provider' ${BUILD_MANIFEST})"
 		auth="$(jq -r '."pkg-repo".rclone_auth' ${BUILD_MANIFEST})"
 		endpoint="$(echo $url | cut -d '/' -f 1-3)"
@@ -1804,7 +1809,10 @@ do_pkgs_push() {
 	fi
 	if [ "$(jq -r '."pkg-repo".rclone_type' ${BUILD_MANIFEST})" != "" ] ; then
 		rclone_type="$(jq -r '."pkg-repo".rclone_type' ${BUILD_MANIFEST})"
-		url="$(jq -r '."pkg-repo".url' ${BUILD_MANIFEST})"
+		url="$(jq -r '."pkg-repo".rclone_url' ${BUILD_MANIFEST})"
+		if [ "q${url}" == "q" ] ; then
+			url="$(jq -r '."pkg-repo".url' ${BUILD_MANIFEST})"
+		fi
 		provider="$(jq -r '."pkg-repo".rclone_provider' ${BUILD_MANIFEST})"
 		auth="$(jq -r '."pkg-repo".rclone_auth' ${BUILD_MANIFEST})"
 		endpoint="$(echo $url | cut -d '/' -f 1-3)"

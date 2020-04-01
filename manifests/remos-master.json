@@ -92,6 +92,7 @@
     "url":"https://raw.githubusercontent.com/rem-os/build/master/repos/remos-master", 
     "signature_type": "none",
     "type": "url",
+    "rclone_url":"http://labstor02.lab.ixsystems.com:9000/ixlab/pkg/remos-master/latest", 
     "rclone_type": "s3",
     "rclone_provider": "minio",
     "rclone_transfers": "128",
@@ -101,6 +102,9 @@
   "pkg-train-name": "remos",
   "ports": {
     "branch": "master",
+    "blacklist": [
+	"devel/py-trimesh"
+    ],
     "build": {
       "default": [
         "archivers/fpc-unzip",
