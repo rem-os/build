@@ -1219,7 +1219,7 @@ EOF
 	LDIST=$(echo $PKG_DISTDIR | sed "s|$ISODIR||g")
 	cat >${ISODIR}/etc/pkg/RemOS.conf <<EOF
 install-repo: {
-  url: "file://${LDIST}"
+  url: "file:///${LDIST}"
   signature_type: "none",
   enabled: yes
 }
