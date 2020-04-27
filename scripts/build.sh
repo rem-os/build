@@ -553,7 +553,7 @@ is_jail_dirty()
 	# Check if we need to build the jail - skip if existing pkg is updated
 	pkgName=$(make -C ${POUDRIERE_PORTDIR}/os/src -V PKGNAME PORTSDIR=${POUDRIERE_PORTDIR} __MAKE_CONF=${OBJDIR}/poudriere.d/${POUDRIERE_BASE}-make.conf)
 	echo "Looking for ${POUDRIERE_PKGDIR}/All/${pkgName}.t*"
-	if [ ! -n  $(find ${POUDRIERE_PKGDIR}/All -maxdepth 1 -name ${pkgname}.'*' -print -quit) ] ; then
+	if [ -n  $(find ${POUDRIERE_PKGDIR}/All -maxdepth 1 -name ${pkgName}.'*' -print -quit) ] ; then
 		echo "Different os/src detected for ${POUDRIERE_BASE} jail"
 		return 1
 	fi
