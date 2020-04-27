@@ -46,6 +46,9 @@
       "default": [
         "remos/pc-installdialog",
         "remos/pc-sysinstall",
+	"ports-mgmt/pkg",
+	"sysutils/dmidecode",
+	"sysutils/tmux",
         "textproc/jq"
       ]
     },
