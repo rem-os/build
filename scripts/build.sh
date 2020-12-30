@@ -29,9 +29,8 @@
 export PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 
 delete_tmp_manifest(){	
-	if [ -e "${BUILD_MANIFEST}.orig" ] ; then	
-		#Put the original manifest file back in place	
-		mv "${BUILD_MANIFEST}.orig" "${BUILD_MANIFEST}"	
+	if [ -e "${tempMan}" ] ; then	
+		rm ${tempMan}
 	fi	
 }	
 
@@ -82,9 +81,14 @@ if [ -z "$BUILD_MANIFEST" ] ; then
 fi
 
 
+
 if [ -z "$BUILD_MANIFEST" ] ; then
 	exit_err "Unset BUILD_MANIFEST"
 fi
+
+tempMan=$(mktemp -t manifest)
+uclcmd get --file ${BUILD_MANIFEST} . -j > ${tempMan}
+export BUILD_MANIFEST=${tempMan}
 
 #Perform any directory replacements in the manifest as needed
 grep -q "%%PWD%%" "${BUILD_MANIFEST}"
@@ -228,8 +232,8 @@ setup_poudriere_conf()
 	echo "ATOMIC_PACKAGE_REPOSITORY=no" >> ${_pdconf}
 	echo "DISTFILES_CACHE=${DISTFILES}" >> ${_pdconf}
 	#echo "PKG_REPO_FROM_HOST=yes" >> ${_pdconf}
-	echo 'ALLOW_MAKE_JOBS_PACKAGES="chromium* iridium* aws-sdk* gcc* webkit* llvm* clang* firefox* ruby* cmake* rust* qt5-web* phantomjs* swift* perl5* py*  electron* vscode* InsightToolkit* mame* kodi-devel* ghc* ceph* "' >> ${_pdconf}
-	echo 'PRIORITY_BOOST="pypy* apache-openoffice* iridium* chromium* aws-sdk* electron* vscode* libreoffice* nwchem*"' >> ${_pdconf}
+	echo 'ALLOW_MAKE_JOBS_PACKAGES="apache-openoffice* libre-office* chromium* iridium* aws-sdk* gcc* webkit* nwchem* paraview* mess* thunderbird* qcad* qgis*  llvm* clang* firefox* ruby* cmake* rust* qt5-web* phantomjs* *rust-bootstrap*  swift* perl5* py*  electron* vscode* InsightToolkit* mame* kodi-devel* ghc* ceph* "' >> ${_pdconf}
+	echo 'PRIORITY_BOOST="pypy* apache-openoffice* iridium* chromium* aws-sdk* electron* vscode* libreoffice* nwchem* *rust-bootstrap* mame*"' >> ${_pdconf}
 
 	# Set all the make config variables from our build
 	if [ "$(jq -r '."poudriere-conf" | length' ${BUILD_MANIFEST})" != "0" ] ; then
@@ -259,7 +263,7 @@ setup_poudriere_conf()
 	# Setup meta for package type
 	if  jq .ports.'"pkg-sufx"' ${BUILD_MANIFEST} >/dev/null 2>/dev/null; then
 		pkg_sufx=$(jq .ports.'"pkg-sufx"' ${BUILD_MANIFEST} |tr -d '"')
-		echo "PKG_SUFX=.${pkg_sufx}" > ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
+		echo "PKG_SUFX=.${pkg_sufx}" >> ${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
 		echo "PKG_REPO_META_FILE=/usr/local/etc/poudriere.d/meta" >> ${_pdconf}
 		echo "version = 1" > /usr/local/etc/poudriere.d/meta
 		echo "packing_format = \"${pkg_sufx}\";" >> /usr/local/etc/poudriere.d/meta
@@ -553,7 +557,8 @@ is_jail_dirty()
 	# Check if we need to build the jail - skip if existing pkg is updated
 	pkgName=$(make -C ${POUDRIERE_PORTDIR}/os/src -V PKGNAME PORTSDIR=${POUDRIERE_PORTDIR} __MAKE_CONF=${OBJDIR}/poudriere.d/${POUDRIERE_BASE}-make.conf)
 	echo "Looking for ${POUDRIERE_PKGDIR}/All/${pkgName}.t*"
-	if [ -n  $(find ${POUDRIERE_PKGDIR}/All -maxdepth 1 -name ${pkgName}.'*' -print -quit) ] ; then
+	set -x
+	if [ -z  $(find ${POUDRIERE_PKGDIR}/All -maxdepth 1 -name ${pkgName}.'*' -print -quit) ] ; then
 		echo "Different os/src detected for ${POUDRIERE_BASE} jail"
 		return 1
 	fi
@@ -865,8 +870,7 @@ check_essential_pkgs()
 			ESSENTIAL="$ESSENTIAL $(jq -r '."iso"."'$ptype'"."'$c'" | join(" ")' ${BUILD_MANIFEST})"
 		done
 	done
-	#TODO remove skipping of essential
-        return 0 
+
 	# Cleanup whitespace
 	ESSENTIAL=$(echo $ESSENTIAL | awk '{$1=$1;print}')
 
@@ -878,7 +882,8 @@ check_essential_pkgs()
 	local _missingpkglist=""
 	for i in $ESSENTIAL
 	do
-		if [ ! -d "${POUDRIERE_PORTDIR}/${i}" ] ; then
+		i="$(echo ${i} |cut -d'@' -f1)"
+		if ! [  -d "${POUDRIERE_PORTDIR}/${i}" ] ; then
 			echo "WARNING: Invalid PORT: $i"
 			_missingpkglist="${_missingpkglist} ${i}"
 			haveWarn=1
@@ -893,7 +898,7 @@ check_essential_pkgs()
 			haveWarn=1
 		fi
 
-		if [ ! -e "${POUDRIERE_PKGDIR}/All/${pkgName}.t*" ] ; then
+		if !  find ${POUDRIERE_PKGDIR}/All/ -name "${pkgName}.t*" 2>&1 > /dev/null   ; then
 			echo "Checked: ${POUDRIERE_PKGDIR}/All/${pkgName}.t*"
 			echo "WARNING: Missing package ${pkgName} for port ${i}"
 			_missingpkglist="${_missingpkglist} ${pkgName}"
@@ -1106,7 +1111,7 @@ create_iso_dir()
 	if  jq .ports.'"pkg-sufx"' ${BUILD_MANIFEST} >/dev/null 2>/dev/null; then
 		meta=dist/${abi}/meta.conf
 		pkg_sufx=$(jq .ports.'"pkg-sufx"' ${BUILD_MANIFEST} |tr -d '"')
-		echo "version = 1" > ${ISODIR}/${meta}
+		echo "version = 2" > ${ISODIR}/${meta}
 		echo "packing_format = \"${pkg_sufx}\";" >> ${ISODIR}/${meta}
 		pkg-static -c ${ISODIR} repo -m ${meta} ${PKG_DISTDIR} ${SIGNING_KEY}
 	else
@@ -1394,7 +1399,7 @@ select_manifest()
 	# TODO - Replace this with "dialog" time permitting
 	echo "Please select a default MANIFEST:"
 	COUNT=0
-	for i in $(ls manifests/ | grep ".json")
+	for i in $(ls manifests/ | grep ".ucl$")
 	do
 		echo "$COUNT) $i"
 		COUNT=$(expr $COUNT + 1)
@@ -1406,7 +1411,7 @@ select_manifest()
 		exit_err "Invalid option!"
 	fi
 	COUNT=0
-	for i in $(ls manifests/ | grep ".json")
+	for i in $(ls manifests/ | grep ".ucl$")
 	do
 		if [ $COUNT -eq $tmp ] ; then
 			MANIFEST=$i
@@ -1789,13 +1794,14 @@ do_pkgs_pull() {
 		bucket="$(echo $url | cut -d '/' -f 4-)"
 		transfers="$(jq -r '."pkg-repo".rclone_transfers' ${BUILD_MANIFEST})"
 		rclone_options="${rclone_options} --${rclone_type}-endpoint ${endpoint}"
+		rclone_options="${rclone_options} --fast-list"
 		if [ -n "${provider}" ] ; then
 			rclone_options="${rclone_options} --${rclone_type}-provider ${provider}"
 		fi
 		if [ -n "${transfers}" ] ; then
 			rclone_options="${rclone_options} --transfers ${transfers} --checkers ${transfers}"
 		fi
-		rclone -v sync :${rclone_type}:${bucket} release/packages ${rclone_options}
+		rclone -v sync :${rclone_type}:${bucket} ${POUDRIERE_PKG_DIR} ${rclone_options}
 	else
 		echo "No rclone type specified for pkg-repo"
 	fi
@@ -1819,6 +1825,7 @@ do_pkgs_push() {
 		bucket="$(echo $url | cut -d '/' -f 4-)"
 		transfers="$(jq -r '."pkg-repo".rclone_transfers' ${BUILD_MANIFEST})"
 		rclone_options="${rclone_options} -L"
+		rclone_options="${rclone_options} --fast-list"
 		if [ -n "${endpoint}" ] ; then
 			rclone_options="${rclone_options} --${rclone_type}-endpoint ${endpoint}"
 		fi
@@ -1831,7 +1838,7 @@ do_pkgs_push() {
 		if [ "${auth}" = "env" ] ; then
 			rclone_options="${rclone_options} --${rclone_type}-env-auth"
 		fi
-		rclone -v sync release/packages :${rclone_type}:${bucket} ${rclone_options}
+		rclone -v sync ${POUDRIERE_PKGDIR} :${rclone_type}:${bucket} ${rclone_options}
 	else
 		echo "No rclone type specified for pkg-repo"
 	fi
@@ -1879,6 +1886,10 @@ case $1 in
 		check_build_environment
 		check_version ;;
 	config)	select_manifest
+		;;
+	checkpkgs) env_check
+		create_release_links
+		check_essential_pkgs
 		;;
 	pushpkgs) env_check
 		do_pkgs_push

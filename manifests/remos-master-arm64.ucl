@@ -1,0 +1,15 @@
+.priority 1
+#.include "./remos-master.ucl"
+.include "test.ucl"
+"arch": {
+  "arch": "aarch64",
+   "platform": "arm64"
+  },
+"iso": {
+  "file-name": "remos-master-aarch64-%%DATE%%-%%GITHASH%%-%%DATE%%",
+}
+"pkg-repo": {
+  "url": "https://raw.githubusercontent.com/rem-os/build/master/repos/remos-master-arm64",
+  "rclone_url": "http://labstor02.lab.ixsystems.com:9000/ixlab/pkg/remos-master-arm64/latest",
+ },
+"pkg-train-name": "remos-master-aarch64"

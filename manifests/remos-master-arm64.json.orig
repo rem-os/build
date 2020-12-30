@@ -1,5 +1,9 @@
 {
   "os-name": "RemOS",
+  "arch": {
+    "arch": "aarch64",
+    "platform": "arm64"
+  },
   "base-packages": {
     "world-flags": {
       "default": [
@@ -29,8 +33,7 @@
     },
     "auto-install-script": "",
     "dist-packages": {
-      "default": [
-      ]
+      "default": []
     },
     "dist-packages-glob": {
       "default": [
@@ -46,9 +49,9 @@
       "default": [
         "remos/pc-installdialog",
         "remos/pc-sysinstall",
-	"ports-mgmt/pkg",
-	"sysutils/dmidecode",
-	"sysutils/tmux",
+        "ports-mgmt/pkg",
+        "sysutils/dmidecode",
+        "sysutils/tmux",
         "textproc/jq"
       ]
     },
@@ -91,22 +94,22 @@
       ]
     }
   },
-  "pkg-repo": { 
-    "url":"https://raw.githubusercontent.com/rem-os/build/master/repos/remos-master", 
+  "pkg-repo": {
+    "url": "https://raw.githubusercontent.com/rem-os/build/master/repos/remos-master-arm64",
     "signature_type": "none",
     "type": "url",
-    "rclone_url":"http://labstor02.lab.ixsystems.com:9000/ixlab/pkg/remos-master/latest", 
+    "rclone_url": "http://labstor02.lab.ixsystems.com:9000/ixlab/pkg/remos-master-arm64/latest",
     "rclone_type": "s3",
     "rclone_provider": "minio",
     "rclone_transfers": "128",
-    "rclone_auth":	"env"
+    "rclone_auth": "env"
   },
   "pkg-repo-name": "rem-os",
-  "pkg-train-name": "remos",
+  "pkg-train-name": "remos-master-aarch64",
   "ports": {
     "branch": "master",
     "blacklist": [
-	"devel/py-trimesh"
+      "devel/py-trimesh"
     ],
     "build": {
       "default": [
@@ -289,9 +292,11 @@
     },
     "build-all": true,
     "pkg-sufx": "tzst",
+    "pkg-compression": "8",
     "make.conf": {
       "default": [
-        "DEFAULT_VERSIONS+=mysql=102m",
+        "BASEPKG_ABISTRING=freebsd:13:aarch64",
+        "DEFAULT_VERSIONS+=mysql=104m",
         "MAKE_JOBS_NUMBER_LIMIT=6",
         "WITH_DVD_DEVICE=/dev/cd0",
         "WITH_CDROM_DEVICE=/dev/cd0",

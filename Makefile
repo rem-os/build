@@ -10,6 +10,8 @@ config:
 	@sh scripts/build.sh config
 ports:
 	@sh scripts/build.sh poudriere
+checkpkgs:
+	@sh scripts/build.sh checkpkgs
 pullpkgs:
 	@sh scripts/build.sh pullpkgs
 pushpkgs:

@@ -1,5 +1,5 @@
 {
-  "os-name": "ixlab",
+  "os-name": "RemOS",
   "base-packages": {
     "world-flags": {
       "default": [
@@ -12,8 +12,8 @@
         "KERNCONF=GENERIC-NODEBUG"
       ]
     },
-    "branch": "ixlab-master",
-    "repo": "https://github.com/darkfiberiru/trueos"
+    "branch": "remos-master",
+    "repo": "https://github.com/rem-os/remos"
   },
   "iso": {
     "auto-install-packages": {
@@ -23,7 +23,7 @@
         "sysutils/ipmitool",
         "textproc/jq",
         "security/sudo",
-        "sysutils/sysup",
+        "remos/sysup",
         "sysutils/tmux"
       ]
     },
@@ -40,12 +40,15 @@
         "os-nozfs-userland"
       ]
     },
-    "file-name": "TrueOS-ixlab-master-x64-%%DATE%%-%%GITHASH%%-%%DATE%%",
+    "file-name": "remos-master-x64-%%DATE%%-%%GITHASH%%-%%DATE%%",
     "install-script": "",
     "iso-packages": {
       "default": [
-        "sysutils/pc-installdialog",
-        "sysutils/pc-sysinstall",
+        "remos/pc-installdialog",
+        "remos/pc-sysinstall",
+	"ports-mgmt/pkg",
+	"sysutils/dmidecode",
+	"sysutils/tmux",
         "textproc/jq"
       ]
     },
@@ -88,18 +91,24 @@
       ]
     }
   },
-  "pkg-repo": {
-    "url": "http://labstor02.lab.ixsystems.com:9000/ixlab/pkg/ixlab-master/latest",
+  "pkg-repo": { 
+    "url":"https://raw.githubusercontent.com/rem-os/build/master/repos/remos-master", 
     "signature_type": "none",
+    "type": "url",
+    "rclone_url":"http://labstor02.lab.ixsystems.com:9000/ixlab/pkg/remos-master/latest", 
     "rclone_type": "s3",
     "rclone_provider": "minio",
     "rclone_transfers": "128",
     "rclone_auth":	"env"
   },
-  "pkg-repo-name": "TrueOS",
-  "pkg-train-name": "ixlab",
+  "pkg-repo-name": "rem-os",
+  "pkg-train-name": "remos",
   "ports": {
-    "branch": "ixlab-master",
+    "branch": "master",
+    "blacklist": [
+	"devel/py-trimesh",
+	"science/py-MDAnalysis"
+    ],
     "build": {
       "default": [
         "archivers/fpc-unzip",
@@ -114,7 +123,7 @@
         "converters/libiconv",
         "databases/galera",
         "databases/influxdb",
-        "databases/mariadb102-server",
+        "databases/mariadb103-server",
         "databases/py-influxdb",
         "deskutils/py-vdirsyncer",
         "devel/arduino-avrdude",
@@ -127,12 +136,10 @@
         "devel/maven",
         "devel/py-chainmap",
         "devel/py-chainmap",
-        "devel/py-google-apputils",
-        "devel/py-googleapis-common-protos",
         "devel/py-minio",
         "devel/py-six",
         "devel/kyua",
-        "dns/bind914",
+        "dns/bind916",
         "dns/libidn2",
         "dns/mDNSResponder_nss",
         "dns/py-easyzone",
@@ -143,9 +150,7 @@
         "ftp/wget",
         "graphics/libdrm",
         "graphics/py-fiona",
-        "graphics/py-fiona",
         "graphics/py-imageio-ffmpeg",
-        "graphics/py-pygooglechart",
         "java/openjdk8",
         "lang/python",
         "lang/python2",
@@ -161,7 +166,6 @@
         "net-mgmt/bsnmp-ucd",
         "net-mgmt/gsnmp",
         "net-mgmt/librenms",
-        "net-mgmt/librenms-agent",
         "net-mgmt/nagios-check_netsnmp",
         "net-mgmt/nagios-snmp-plugins",
         "net-mgmt/nagios-snmp-plugins-extras",
@@ -174,14 +178,11 @@
         "net-mgmt/py-pysnmp-mibs",
         "net-mgmt/py-snmp_passpersist",
         "net-mgmt/py-snmpclitools",
-        "net-mgmt/py-yapsnmp",
         "net-mgmt/rubygem-snmp",
-        "net-mgmt/snmp++",
         "net-mgmt/snmp4nagios",
         "net-mgmt/snmptt",
         "net/fping",
         "net/grsync",
-        "net/librsync2",
         "net/openldap24-client",
         "net/openldap24-sasl-client",
         "net/openldap24-server",
@@ -202,7 +203,7 @@
         "os/kernel-debug-symbols@all",
         "os/kernel-symbols@all",
         "ports-mgmt/pkg",
-        "ports-mgmt/poudriere-trueos",
+        "remos/poudriere-pkgbase",
         "science/sigrok-cli",
         "security/nmap",
         "security/py-certbot-dns-google",
@@ -210,8 +211,6 @@
         "security/py-google-auth-httplib2",
         "security/py-oauth2client",
         "security/sudo",
-        "security/unssh",
-        "security/zenmap",
         "shells/bash",
         "shells/zsh",
         "sysutils/afio",
@@ -221,23 +220,20 @@
         "sysutils/cpuburn",
         "sysutils/devcpu-data",
         "sysutils/dmidecode",
-        "sysutils/fusefs-gunzip",
         "sysutils/grub2-bhyve",
         "sysutils/intel-pcm",
         "sysutils/ipmitool",
-        "sysutils/ix-bhyve",
         "sysutils/iocage",
         "sysutils/logstash6",
         "sysutils/openzfs",
         "sysutils/py-dirsync",
         "sysutils/py-google-compute-engine",
-        "sysutils/py-ixautomation",
         "sysutils/py-supervisor",
         "sysutils/rpi-firmware",
         "sysutils/rsyncbackup",
         "sysutils/smartmontools",
         "sysutils/syslog-ng",
-        "sysutils/sysup",
+        "remos/sysup",
         "sysutils/tmux",
         "sysutils/turbostat",
         "sysutils/uefi-edk2-bhyve",
@@ -279,10 +275,12 @@
         "x11/xcb-util"
       ]
     },
-    "build-all": true,
+    "build-all": false,
+    "pkg-sufx": "tzst",
+    "pkg-compression": "8",
     "make.conf": {
       "default": [
-        "DEFAULT_VERSIONS+=mysql=102m",
+        "DEFAULT_VERSIONS+=mysql=104m",
         "MAKE_JOBS_NUMBER_LIMIT=6",
         "WITH_DVD_DEVICE=/dev/cd0",
         "WITH_CDROM_DEVICE=/dev/cd0",
@@ -298,15 +296,18 @@
       ]
     },
     "type": "git",
-    "url": "https://github.com/darkfiberiru/trueos-ports"
+    "url": "https://github.com/rem-os/ports"
   },
   "poudriere": {
-    "jailname": "ixlab-master%%ARCH%%",
-    "portsname": "ixlab-master"
+    "jailname": "remos-master%%ARCH%%",
+    "portsname": "remos-master"
   },
   "poudriere-conf": [
     "NOHANG_TIME=14400",
-    "USE_TMPFS='all'"
+    "MAX_FILES_vscode=4096",
+    "PKG_REPO_META_FILE=/usr/local/etc/poudriere.d/meta",
+    "USE_TMPFS='all'",
+    "PKG_HASH='yes'"
   ],
   "version": "1.1"
 }

@@ -3,3 +3,5 @@ release
 src
 vm-mnt
 .config
+build-logs
+cleanup-logs
