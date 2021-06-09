@@ -446,6 +446,7 @@ setup_poudriere_ports()
 	echo "BUILD_EPOCH_TIME=${BUILD_EPOCH_TIME}" >>${POUDRIERED_DIR}/${POUDRIERE_BASE}-make.conf
 
 	# Setup the OS sources for build
+	echo "Checking out OS sources" 
 	checkout_os_sources
 }
 
@@ -522,10 +523,10 @@ create_poudriere_ports()
 
 checkout_os_sources()
 {
-
 	# Checkout sources
 	GITREPO=$(jq -r '."base-packages"."repo"' ${BUILD_MANIFEST} 2>/dev/null)
 	GITBRANCH=$(jq -r '."base-packages"."branch"' ${BUILD_MANIFEST} 2>/dev/null)
+	echo $GITREPO $GITBRANCH
 	if [ -z "${GITREPO}" -o -z "${GITBRANCH}" -o "${GITREPO}" = "null" -o "${GITBRANCH}" = "null" ] ; then
 		exit_err "Missing base-packages repo/branch"
 	fi
@@ -557,7 +558,6 @@ is_jail_dirty()
 	# Check if we need to build the jail - skip if existing pkg is updated
 	pkgName=$(make -C ${POUDRIERE_PORTDIR}/os/src -V PKGNAME PORTSDIR=${POUDRIERE_PORTDIR} __MAKE_CONF=${OBJDIR}/poudriere.d/${POUDRIERE_BASE}-make.conf)
 	echo "Looking for ${POUDRIERE_PKGDIR}/All/${pkgName}.t*"
-	set -x
 	if [ -z  $(find ${POUDRIERE_PKGDIR}/All -maxdepth 1 -name ${pkgName}.'*' -print -quit) ] ; then
 		echo "Different os/src detected for ${POUDRIERE_BASE} jail"
 		return 1
@@ -716,6 +716,8 @@ setup_ports_blacklist()
 {
 	# Setup the ports blacklist based on the options in the ${BUILD_MANIFEST}
 	local BLFile="${POUDRIERED_DIR}/${POUDRIERE_BASE}-blacklist"
+	echo $BLFile
+	echo "Cleaning blacklist"
 	# Re-initialize the blacklist file (delete it at the outset)
 	if [ -e "${BLFile}" ] ; then rm "${BLFile}" ; fi
 	# Now go through and re-add any ports from the manifest to the blacklist file

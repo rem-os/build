@@ -106,8 +106,6 @@
   "ports": {
     "branch": "master",
     "blacklist": [
-	"devel/py-trimesh",
-	"science/py-MDAnalysis"
     ],
     "build": {
       "default": [
@@ -297,7 +295,7 @@
     "url": "https://github.com/rem-os/ports"
   },
   "poudriere": {
-    "jailname": "remos-master%%ARCH%%",
+    "jailname": "remos-main%%ARCH%%",
     "portsname": "remos-master"
   },
   "poudriere-conf": [
